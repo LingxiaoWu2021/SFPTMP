@@ -8,7 +8,7 @@
 - For a detailed explanation of the instance data, find the "README" file in the folder "instances". 
 
 ## RESULTS:
-- The detailed results obtained by each solution method for all instances are provided in the folder "data". 
+- The detailed results obtained by each solution method for all instances are provided in the folder "Results". 
 
 ## CODE:
 - Code of all algorithms used in our computational experiments is provided in the folder "sourcecode". 
