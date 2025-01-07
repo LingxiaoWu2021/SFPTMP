@@ -4,8 +4,8 @@
 - The code and data sets are also available from https://github.com/LingxiaoWu2021/SFPTMP.
 
 ## DATASETS:
-- The instance data are provided in the folder "data". 
-- For a detailed explanation of the instance data, find the "README" file in the folder "data". 
+- The instance data are provided in the folder "instances". 
+- For a detailed explanation of the instance data, find the "README" file in the folder "instances". 
 
 ## RESULTS:
 - The detailed results obtained by each solution method for all instances are provided in the folder "data". 
