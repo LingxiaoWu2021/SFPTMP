@@ -60,7 +60,7 @@ int SHets[SPN]={3,5,7,9,11,13,15,17,5,9,13,17,4,10,16,5,7,9,11,13,15,17,5,9,13,1
 
 int LL=999999;
 double sddperr=-100;  // set it to a negative value means that we do not allow stablize to terminate
-double uptime_p1=1560*P;
+double uptime_p1=360*P;
 double uptime_p2=1200*P;
 double pdlgap=1; 
 double pdlgap02=1;
@@ -259,7 +259,7 @@ string num2str(double i)
 ss<<i;
 return ss.str();}
 
-ofstream mycout01("//scratch//lxwu//2024//HSDDP//Results//D"+num2str(Dev)+"_P"+num2str(P)+"_SN"+num2str(SN)+"_CN"+num2str(CNN)+".txt");
+ofstream mycout01("//scratch//lxwu//2024//S2//Results//D"+num2str(Dev)+"_P"+num2str(P)+"_SN"+num2str(SN)+"_CN"+num2str(CNN)+".txt");
 
 void Subtreesetup(){ 
 	for (int thep=0;thep!=P;++thep){
@@ -1185,259 +1185,251 @@ double BIDP (int record, int LCI) {
 	return result; 
 }
 
-double FLOATBIDP(int record, double timlim) {
-	double result = 0;
-	IloEnv env;
+double INTBIDP (int record,double timlim) { 
+	double result=0;
+	IloEnv env; 
 	IloNumVar obj(env, -IloInfinity, IloInfinity, ILOFLOAT);
-	IloNumVarArray x(env, BN, 0, 1, ILOFLOAT);
-	IloNumVarArray y(env, BN, 0, IloInfinity, ILOFLOAT);
-	IloNumVar F(env, 0, IloInfinity, ILOFLOAT);
+	IloNumVarArray x(env, BN, 0, 1, ILOINT); 
+	IloNumVarArray y(env, BN, 0, IloInfinity, ILOFLOAT); 
+	IloNumVar F(env, 0, IloInfinity, ILOFLOAT); 
 	IloArray<IloNumVarArray> z(env, STTSN[0]);
 	IloArray<IloNumVarArray> u(env, STTSN[0]);
 	IloArray<IloNumVarArray> v(env, STTSN[0]);
-	for (int sn = 0; sn != STTSN[0]; ++sn) {
-		z[sn] = IloNumVarArray(env, ARC, 0, IloInfinity, ILOFLOAT);
-		u[sn] = IloNumVarArray(env, ND, 0, IloInfinity, ILOFLOAT);
-		v[sn] = IloNumVarArray(env, ND, 0, IloInfinity, ILOFLOAT);
+	for (int sn=0;sn!=STTSN[0];++sn){ 
+		z[sn]=IloNumVarArray (env, ARC, 0, IloInfinity, ILOFLOAT); 
+		u[sn]=IloNumVarArray (env, ND, 0, IloInfinity, ILOFLOAT); 
+		v[sn]=IloNumVarArray (env, ND, 0, IloInfinity, ILOFLOAT); 
 	}
-	try {
-
+	try{
+		
 		IloModel model(env);
-		{
-			model.add(IloMinimize(env, obj));
-		}
-		{
-			IloExpr Z1(env);
-			for (int b = 0; b != BN; ++b) {
-				Z1 += mfb[b] * y[b];
+		{   
+			model.add(IloMinimize(env, obj)); 
+		} 
+		{   
+			IloExpr Z1(env); 
+			for (int b=0;b!=BN;++b){
+				Z1+=mfb[b]*y[b];  
 			}
-			model.add(obj == Z1 + F);
+			model.add(obj==Z1+F);
 			Z1.end();
 		}
-
-		{
-			for (int b = 0; b != BN; ++b) {
-				model.add(y[b] >= lbcap[b] * x[b]);
+		
+		{   
+			for (int b=0;b!=BN;++b){
+				model.add(y[b]>=lbcap[b]*x[b]);
 			}
 		}
 
-		{
-			for (int b = 0; b != BN; ++b) {
-				model.add(y[b] <= ubcap[b] * x[b]);
+		{   
+			for (int b=0;b!=BN;++b){
+				model.add(y[b]<=ubcap[b]*x[b]);
 			}
 		}
-		{
-			for (int n = 0; n != BidCN; ++n) {
+		{    
+			for (int n=0;n!=BidCN;++n){
 				IloExpr sum1(env);
-				for (int bb = 0; bb != BN; ++bb) {
-					sum1 += y[bb] * Bidcutset[bb][n];
+				for (int bb=0;bb!=BN;++bb){
+					sum1+=y[bb]*Bidcutset[bb][n];
 				}
-				model.add(F >= sum1 + Bidcutval[n]);
+				model.add(F>=sum1+Bidcutval[n]);
 				sum1.end();
 			}
 		}
-		{
+		{    
 			IloExpr sum1(env);
-			for (int s = 0; s != STTSN[0]; ++s) {
-				for (int p = 0; p != P; ++p) {
-					for (int n = 0; n != PNN[p]; ++n) {
-						int thend = PNset[p][n];
-						sum1 += STtrpr[0][s] * COST1[thend] * u[s][thend];
-						sum1 += STtrpr[0][s] * COST2[thend] * v[s][thend];
+			for (int s=0;s!=STTSN[0];++s){
+				for (int p=0;p!=P;++p){
+					for (int n=0;n!=PNN[p];++n){
+						int thend=PNset[p][n]; 
+						sum1+=STtrpr[0][s]*COST1[thend]*u[s][thend]; 
+						sum1+=STtrpr[0][s]*COST2[thend]*v[s][thend]; 
 					}
 				}
 			}
-			for (int s = 0; s != STTSN[0]; ++s) {
-				for (int p = 0; p != P; ++p) {
-					for (int n = 0; n != PAN[p]; ++n) {
-						int tharc = PAset[p][n];
-						sum1 += STtrpr[0][s] * COST3[tharc] * z[s][tharc];
+			for (int s=0;s!=STTSN[0];++s){
+				for (int p=0;p!=P;++p){
+					for (int n=0;n!=PAN[p];++n){
+						int tharc=PAset[p][n]; 
+						sum1+=STtrpr[0][s]*COST3[tharc]*z[s][tharc]; 
 					}
 				}
 			}
-			model.add(F >= sum1);
+			model.add(F>=sum1);
 			sum1.end();
 		}
-		{
-			for (int s = 0; s != STTSN[0]; ++s) {
-				for (int b = 0; b != BN; ++b) {
-					for (int p = 0; p != P; ++p) {
-						for (int n = 0; n != PBAN[p][b]; ++n) {
-							int thearc = PBAset[p][b][n];
-							model.add(z[s][thearc] <= y[b]);
+		{   
+			for (int s=0;s!=STTSN[0];++s){
+				for (int b=0;b!=BN;++b){
+					for (int p=0;p!=P;++p){
+						for (int n=0;n!=PBAN[p][b];++n){
+							int thearc=PBAset[p][b][n];
+							model.add(z[s][thearc]<=y[b]);
 						}
 					}
 				}
 			}
 		}
-		{
-			for (int s = 0; s != STTSN[0]; ++s) {
-				for (int t1 = 1; t1 != T; ++t1) {
-					int t2 = t1 - 1;
-					for (int i = 0; i != I1; ++i) {
-						int nd1 = NDindex[i][t1];
-						int nd2 = NDindex[i][t2];
+		{   
+			for (int s=0;s!=STTSN[0];++s){
+				for (int t1=1;t1!=T;++t1){
+					int t2=t1-1;
+					for (int i=0;i!=I1;++i){  
+						int nd1=NDindex[i][t1]; 
+						int nd2=NDindex[i][t2];
 						IloExpr sum1(env);
-						for (int n = 0; n != OUTAN[nd1]; ++n) {
-							int thearc = OUTAset[nd1][n];
-							sum1 += z[s][thearc];
+						for (int n=0;n!=OUTAN[nd1];++n){
+							int thearc=OUTAset[nd1][n];
+							sum1+=z[s][thearc];
 						}
-						model.add(u[s][nd1] == u[s][nd2] + STD[0][s][nd1] + v[s][nd2] - v[s][nd1] - sum1);
+						model.add(u[s][nd1]==u[s][nd2]+STD[0][s][nd1]+v[s][nd2]-v[s][nd1]-sum1); 
 						sum1.end();
 					}
 				}
 			}
 		}
-		{
-			for (int s = 0; s != STTSN[0]; ++s) {
-				for (int i = 0; i != I1; ++i) {
-					int nd = NDindex[i][0];
+		{   
+			for (int s=0;s!=STTSN[0];++s){
+				for (int i=0;i!=I1;++i){  
+					int nd=NDindex[i][0]; 
 					IloExpr sum1(env);
-					for (int n = 0; n != OUTAN[nd]; ++n) {
-						int thearc = OUTAset[nd][n];
-						sum1 += z[s][thearc];
+					for (int n=0;n!=OUTAN[nd];++n){
+						int thearc=OUTAset[nd][n];
+						sum1+=z[s][thearc];
 					}
-					model.add(u[s][nd] == IQ[nd] + STD[0][s][nd] - v[s][nd] - sum1);
+					model.add(u[s][nd]==IQ[nd]+STD[0][s][nd]-v[s][nd]-sum1); 
 					sum1.end();
 				}
 			}
 		}
-		{
-			for (int s = 0; s != STTSN[0]; ++s) {
-				for (int t1 = 1; t1 != T; ++t1) {
-					int t2 = t1 - 1;
-					for (int i = 0; i != I2; ++i) {
-						int nd1 = NDindex[i + I1][t1];
-						int nd2 = NDindex[i + I1][t2];
+		{   
+			for (int s=0;s!=STTSN[0];++s){
+				for (int t1=1;t1!=T;++t1){
+					int t2=t1-1;
+					for (int i=0;i!=I2;++i){  
+						int nd1=NDindex[i+I1][t1]; 
+						int nd2=NDindex[i+I1][t2];
 						IloExpr sum1(env);
-						for (int n = 0; n != INAN[nd1]; ++n) {
-							int thearc = INAset[nd1][n];
-							sum1 += z[s][thearc];
+						for (int n=0;n!=INAN[nd1];++n){
+							int thearc=INAset[nd1][n];
+							sum1+=z[s][thearc];
 						}
-						model.add(u[s][nd1] == u[s][nd2] + STD[0][s][nd1] - v[s][nd2] + v[s][nd1] + sum1);
+						model.add(u[s][nd1]==u[s][nd2]+STD[0][s][nd1]-v[s][nd2]+v[s][nd1]+sum1); 
 						sum1.end();
 					}
 				}
 			}
 		}
-		{
-			for (int s = 0; s != STTSN[0]; ++s) {
-				for (int i = 0; i != I2; ++i) {
-					int nd = NDindex[i + I1][0];
+		{   
+			for (int s=0;s!=STTSN[0];++s){
+				for (int i=0;i!=I2;++i){  
+					int nd=NDindex[i+I1][0]; 
 					IloExpr sum1(env);
-					for (int n = 0; n != INAN[nd]; ++n) {
-						int thearc = INAset[nd][n];
-						sum1 += z[s][thearc];
+					for (int n=0;n!=INAN[nd];++n){
+						int thearc=INAset[nd][n];
+						sum1+=z[s][thearc];
 					}
-					model.add(u[s][nd] == IQ[nd] + STD[0][s][nd] + v[s][nd] + sum1);
+					model.add(u[s][nd]==IQ[nd]+STD[0][s][nd]+v[s][nd]+sum1); 
 					sum1.end();
 				}
 			}
 		}
-		{
-			for (int s = 0; s != STTSN[0]; ++s) {
-				for (int n = 0; n != ND; ++n) {
-					model.add(u[s][n] <= TQ[n]);
+		{   
+			for (int s=0;s!=STTSN[0];++s){
+				for (int n=0;n!=ND;++n){
+					model.add(u[s][n]<=TQ[n]);
 				}
 			}
 		}
-		{
-			for (int p = 0; p != P; ++p) {
-				for (int pn = 0; pn != STGPATHN[0][p]; ++pn) {
-					for (int sn = 0; sn < STGSFSN[0][p][pn] - 1; ++sn) {
-						int s1 = STGSFSset[0][p][pn][sn];
-						for (int mm = sn + 1; mm < STGSFSN[0][p][pn]; ++mm) {
-							int s2 = STGSFSset[0][p][pn][mm];
-							for (int an = 0; an != PAN[p]; ++an) {
-								int thearc = PAset[p][an];
-								model.add(z[s1][thearc] == z[s2][thearc]);
+		{   
+			for (int p=0;p!=P;++p){
+				for (int pn=0;pn!= STGPATHN[0][p];++pn){ 
+					for (int sn=0;sn<STGSFSN[0][p][pn]-1;++sn){
+						int s1=STGSFSset[0][p][pn][sn];
+						for (int mm=sn+1;mm<STGSFSN[0][p][pn];++mm){
+							int s2=STGSFSset[0][p][pn][mm];
+							for (int an=0;an!=PAN[p];++an){  
+								int thearc=PAset[p][an];
+								model.add(z[s1][thearc]==z[s2][thearc]);
 							}
 						}
 					}
 				}
 			}
 		}
-		{
-			for (int s = 0; s != STTSN[0]; ++s) {
-				for (int PH = 0; PH < P - 1; ++PH) {
-					int lasttime = PTset[PH][PTN[PH] - 1];
-					for (int nn = 0; nn != SPANN[PH]; ++nn) {
-						int thenode = SPANset[PH][nn];
-						int thesite = Nodeset[0][thenode];
-						int thetime = Nodeset[1][thenode];
-						int lastnd = NDindex[thesite][lasttime];
+		{ 
+			for (int s=0;s!=STTSN[0];++s){
+				for (int PH=0;PH<P-1;++PH){  
+					int lasttime=PTset[PH][PTN[PH]-1];
+					for (int nn=0;nn!=SPANN[PH];++nn){
+						
+						int thenode=SPANset[PH][nn];      
+						int thesite=Nodeset[0][thenode];  
+						int thetime=Nodeset[1][thenode];  
+						int lastnd=NDindex[thesite][lasttime];
 						IloExpr sum1(env);
-						for (int tt = PTset[PH + 1][0]; tt <= thetime; ++tt) {
-							int crtnd = NDindex[thesite][tt];
-							for (int pp = 0; pp <= PH; ++pp) {
-								for (int an = 0; an != PINAN[pp][crtnd]; ++an) {
-									int thearc = PINAset[pp][crtnd][an];
-									sum1 += z[s][thearc];
+						for (int tt=PTset[PH+1][0]; tt<=thetime;++tt){
+							int crtnd=NDindex[thesite][tt]; 
+							for (int pp=0;pp<=PH;++pp){
+								for (int an=0;an!=PINAN[pp][crtnd];++an){
+									int thearc=PINAset[pp][crtnd][an];
+									sum1+=z[s][thearc];
 								}
 							}
 						}
-						model.add(u[s][lastnd] - v[s][lastnd] + sum1 + MINIdmd[PH][nn] <= TQ[thenode]);
+						model.add(u[s][lastnd]-v[s][lastnd]+sum1+MINIdmd[PH][nn]<=TQ[thenode]);
 						sum1.end();
 					}
 				}
 			}
 		}
-
+		
 		{
 			IloCplex cplex(env);
-			cplex.setParam(IloCplex::Param::TimeLimit, timlim);
+			cplex.setParam(IloCplex::Param::TimeLimit,timlim);
 			cplex.extract(model);
-			cplex.setParam(IloCplex::Threads, 1);
+			cplex.setParam(IloCplex::Threads, 1);  
 			cplex.setOut(env.getNullStream());
 			cplex.setWarning(env.getNullStream());
-			clock_t t_start01, t_end01;
-			t_start01 = clock();
+			struct timeval t_start01,t_end01; 
+			gettimeofday(&t_start01,NULL);
 			cplex.solve();
-			t_end01 = clock();
-			double theobj = cplex.getObjValue();
-			double fval = cplex.getValue(F);
-			Bidf = fval;
-			bidcost = theobj - fval;
-			result = theobj;
-			if (double(t_end01 - t_start01) / 1000 >= timlim - 1) {
-				cout << "time reached" << endl;
-				double thegap = cplex.getMIPRelativeGap();
-				double thelim = 0.001;
-				if (thegap * 100 > thelim) {
-					result = result / (1 + thegap);
+			gettimeofday(&t_end01,NULL);
+			double theobj=cplex.getObjValue();
+			double fval=cplex.getValue(F); 
+			Bidf=fval;
+			bidcost=theobj-fval;
+			result=theobj;
+			if ((((t_end01.tv_sec - t_start01.tv_sec)*1000000+(t_end01.tv_usec - t_start01.tv_usec))/double(1000000))>=timlim-1){
+				cout<<"time reached"<<endl;
+				double thegap=cplex.getMIPRelativeGap();
+				double thelim=0.001;
+				if (thegap*100>thelim){
+					result=result/(1+thegap);
 				}
 			}
-			if (record == 1) {
-				thebidlb = theobj;
-				for (int b = 0; b != BN; ++b) {
-					int thex = 0;
-					Bcap[b] = 0;
-					double temp = cplex.getValue(x[b]);
-					if (temp >= 0.5) {
-						thex = 1;
+			if (record==1){
+				thebidlb=theobj;
+				for (int b=0;b!=BN;++b){
+					int thex=0;
+					double temp=cplex.getValue(x[b]);
+					if (temp>0.98){
+						thex=1;
 					}
-					Xval[b] = thex;
-					if (Xval[b] >= 0.9) {
-						double theamount = cplex.getValue(y[b]);
-						if (theamount < lbcap[b]) {
-							Bcap[b] = lbcap[b];
-						}
-						if (theamount > ubcap[b]) {
-							Bcap[b] = ubcap[b];
-						}
-						if (theamount >= lbcap[b] && theamount <= ubcap[b]) {
-							Bcap[b] = theamount;
-						}
-						cout << "bid[" << b << "] is selected with amount [" << Bcap[b] << "]" << endl;
-					}
+					Xval[b]=thex;
+				}
+				for (int b=0;b!=BN;++b){
+					Bcap[b]=0; 
+					double theamount=cplex.getValue(y[b]);
+					Bcap[b]=theamount; 
 				}
 			}
 		}
 	}
-	catch (IloException& ex) {
+	catch(IloException& ex){
 		cerr << ex << endl;
 	}
-	catch (...) {
+	catch(...){
 		cerr << "Error..." << endl;
 	}
 	env.end();
@@ -2502,7 +2494,7 @@ double SDDP(double err,int stn,int isint){
 			Backward(isint); 
 		}
 		if (isint==1){
-			theresult= FLOATBIDP(1,timlim01);
+			theresult=INTBIDP(1,timlim01);
 			Forward(); 
 			Backward(isint); 
 		} 
@@ -3228,7 +3220,7 @@ void ORISDDP(double err){
 		tbcn_p1+=TRCN[nn];
 	}
 	gettimeofday(&p2_start,NULL);
-	//lb_p2=SDDP(err,10,1); 
+	lb_p2=SDDP(err,10,1); 
 	tbcn_total=BidCN;
 	for (int nn=0;nn!=P-1;++nn){
 		tbcn_total+=TRCN[nn];
@@ -3237,7 +3229,7 @@ void ORISDDP(double err){
 	gettimeofday(&p2_end,NULL);
     t_p2=((p2_end.tv_sec - p2_start.tv_sec)*1000000+(p2_end.tv_usec - p2_start.tv_usec))/double(1000000);
 	gettimeofday(&p3_start,NULL);
-	LB= FLOATBIDP(1,timlim02); 
+	LB=INTBIDP(1,timlim02); 
 	gettimeofday(&p3_end,NULL);
     t_p3=((p3_end.tv_sec - p3_start.tv_sec)*1000000+(p3_end.tv_usec - p3_start.tv_usec))/double(1000000);
     t_total=((p3_end.tv_sec - p1_start.tv_sec)*1000000+(p3_end.tv_usec - p1_start.tv_usec))/double(1000000);
