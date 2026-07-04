@@ -17,8 +17,10 @@
   2. S1：   code for S1
   3. S2：   code for S2
   4. CPLEX: code for running CPLEX on model P 
-  5. BM1：  code for BM1
-  6. BM2：  code for BM2
+  5. NC：   code for NC
+  6. MD：   code for MD
+  7. HS:    code for HS
+  8. TS:    code for TS
 
 - List of .h files in the subfolder "inc":
   1. Avgminmax02.h:         user-defined c++ library header file
